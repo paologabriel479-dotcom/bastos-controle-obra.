@@ -1,0 +1,43 @@
+
+name: Build Bastos APK
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - '.github/workflows/build.yml'
+      - 'BastosAndroid/**'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Baixar arquivos
+        uses: actions/checkout@v4
+
+      - name: Preparar Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Compilar APK
+        run: |
+          if [ -f "./gradlew" ]; then
+            chmod +x ./gradlew
+            ./gradlew assembleDebug
+          elif [ -f "./BastosAndroid/gradlew" ]; then
+            cd BastosAndroid
+            chmod +x ./gradlew
+            ./gradlew assembleDebug
+          else
+            echo "Não encontrei o gradlew do projeto Android."
+            exit 1
+          fi
+
+      - name: Disponibilizar APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: Bastos-Controle-de-Obra-APK
+          path: |
+            **/build/outputs/apk/debug/*.apk
